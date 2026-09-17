@@ -1,0 +1,11 @@
+# fastmcp is pinned below <4 because kubectl-mcp-server's own dependency pin
+# (fastmcp>=3.0.0b1) has no upper bound: an unconstrained install resolves
+# fastmcp 4.x, which pulls in a breaking mcp 2.x rewrite that
+# kubectl_mcp_tool's own code can't import - the tool never starts.
+# Both versions pinned exactly, matching platformfix/podium's Dockerfile
+# (confirmed working there 2026-09-03; re-confirmed directly against this
+# repo's own kind cluster while building it) - so a new kubectl-mcp-server
+# release can't reintroduce a break like that one silently. Dependabot
+# (pip ecosystem) will open a PR to review instead.
+kubectl-mcp-server==1.24.0
+fastmcp<4
