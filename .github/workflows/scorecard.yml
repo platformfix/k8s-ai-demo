@@ -1,11 +1,3 @@
-# This workflow will show red while the repo is private: Scorecard's own
-# checkout step runs with persist-credentials: false and then re-fetches
-# unauthenticated, which GitHub reports as "Repository not found" against
-# any private repo, not a fault in this file. Confirmed 2026-09-17 against
-# this repo's own first push. Copied verbatim from platformfix/podium
-# (public), where the same file works because that repo is public - no
-# divergence needed here; this will pass on its own once this repo goes
-# public.
 name: Scorecard analysis workflow
 on:
   push:
