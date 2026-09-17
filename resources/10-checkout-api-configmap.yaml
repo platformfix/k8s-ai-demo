@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: checkout-api-config
+  namespace: k8s-ai-demo
+data:
+  LOG_LEVEL: "info"
+  FEATURE_FLAG_NEW_CHECKOUT: "true"

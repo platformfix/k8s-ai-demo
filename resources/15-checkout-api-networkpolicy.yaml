@@ -1,0 +1,26 @@
+# Broken-state #2, revealed only after #1 is fixed: this policy allows
+# ingress to checkout-api only from pods labeled app=storefront-legacy - a
+# label nothing in this namespace has. The real storefront Deployment
+# (14-storefront-deployment.yaml) is labeled app=storefront, so once
+# checkout-api's pod is healthy, its Service has endpoints but every
+# request from storefront still times out. Requires Calico (see
+# vendor/calico-v3.32.2.yaml) - kind's default CNI does not enforce
+# NetworkPolicies at all, so this resource would otherwise be a no-op.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: checkout-api-allow-storefront
+  namespace: k8s-ai-demo
+spec:
+  podSelector:
+    matchLabels:
+      app: checkout-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: storefront-legacy
+      ports:
+        - port: 80

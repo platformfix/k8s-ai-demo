@@ -1,0 +1,6 @@
+# Names the repo owner for GitHub's own UI (review requests, blame).
+# The branch ruleset does NOT currently require owner review before merge -
+# see platformfix/podium's CLAUDE.md for the rationale this repo follows:
+# solo-author repo, GitHub blocks self-approval anyway. This file's effect
+# is currently informational only.
+* @swade1987

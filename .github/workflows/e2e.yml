@@ -1,0 +1,53 @@
+name: e2e
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  demo:
+    name: full demo lifecycle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install kind (cluster creation happens in setup.sh, not here)
+        uses: helm/kind-action@06c1ae10762d3b9c1644e7fe69596ae519e015a2 # v1.15.0
+        with:
+          install_only: "true"
+
+      - name: Install pv
+        run: sudo apt-get update && sudo apt-get install -y pv
+
+      - name: Run the full lifecycle - the same scripts a presenter runs
+        env:
+          DEMO_AUTO_RUN: "1"
+          DEMO_RUN_FAST: "1"
+        run: |
+          ./setup.sh
+          ./preflight.sh
+          ./demo.sh
+          ./reset.sh
+          ./cleanup.sh
+
+      - name: Show cluster and MCP server state on failure
+        if: failure()
+        run: |
+          export KUBECONFIG="$PWD/.kubeconfig"
+          kubectl get pods -A || true
+          kubectl -n k8s-ai-demo describe pod -l app=checkout-api || true
+          kubectl -n k8s-ai-demo get networkpolicy -o yaml || true
+          cat .mcp-call.log || true
+          .venv/bin/kubectl-mcp-serve doctor || true
