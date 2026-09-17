@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-api
+  namespace: k8s-ai-demo
+  labels:
+    app: checkout-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: checkout-api
+  template:
+    metadata:
+      labels:
+        app: checkout-api
+    spec:
+      containers:
+        - name: checkout-api
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: checkout-api-config
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: checkout-api-secrets
+                  # BROKEN (see 11-checkout-api-secret.yaml): the Secret's
+                  # actual key is "db-password", not "DB_PASSWORD".
+                  key: DB_PASSWORD
