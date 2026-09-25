@@ -42,6 +42,31 @@ if [ ! -d "$DEMO_VENV" ]; then
   python3 -m venv "$DEMO_VENV"
 fi
 "$DEMO_VENV/bin/pip" install --quiet --no-cache-dir -r requirements.txt
+
+# kubectl-mcp-server 1.24.0 imports `ToolAnnotations` from `fastmcp.tools`,
+# a symbol fastmcp dropped from that module across its whole 4.x series (it
+# now lives in mcp_types). Without it, kubectl_mcp_tool's own ImportError
+# fallback reaches for `from mcp.server.fastmcp import FastMCP`, which
+# fastmcp 4.x's own mcp>=2.0 dependency removed too - so kubectl-mcp-serve
+# can't start at all (confirmed against every published 4.0.x release,
+# 2026-09-25). Re-export the symbol into the installed fastmcp package so
+# kubectl-mcp-server's primary import path keeps working until it ships a
+# fastmcp 4.x-compatible release. Safe to re-run: skips itself once
+# fastmcp.tools already has the symbol.
+"$DEMO_VENV/bin/python" - <<'PYEOF'
+import inspect
+
+import fastmcp.tools
+
+if not hasattr(fastmcp.tools, "ToolAnnotations"):
+    init_file = inspect.getsourcefile(fastmcp.tools)
+    with open(init_file, "a") as f:
+        f.write(
+            "\nfrom mcp_types import ToolAnnotations  "
+            "# k8s-ai-demo compat shim, see setup.sh\n"
+        )
+PYEOF
+
 "$DEMO_VENV/bin/kubectl-mcp-serve" doctor
 
 echo "==> Wiring the kubernetes MCP server into Claude Code"
