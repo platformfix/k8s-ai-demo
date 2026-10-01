@@ -8,4 +8,4 @@
 # release can't reintroduce a break like that one silently. Dependabot
 # (pip ecosystem) will open a PR to review instead.
 kubectl-mcp-server==1.24.0
-fastmcp<4
+fastmcp<5
