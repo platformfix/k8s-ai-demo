@@ -42,6 +42,30 @@ if [ ! -d "$DEMO_VENV" ]; then
   python3 -m venv "$DEMO_VENV"
 fi
 "$DEMO_VENV/bin/pip" install --quiet --no-cache-dir -r requirements.txt
+
+echo "==> Patching kubectl-mcp-server for fastmcp 4"
+# fastmcp 4 no longer exports ToolAnnotations from fastmcp.tools; the type
+# now lives in mcp.types (see requirements.txt for the full story). This
+# rewrites that one import in the installed package. It is idempotent and
+# exits non-zero if the old import survives. find_spec locates the package
+# without importing it - importing it is exactly what crashes.
+"$DEMO_VENV/bin/python" - <<'PYEOF'
+import importlib.util, pathlib, sys
+old = "from fastmcp.tools import ToolAnnotations"
+new = "from mcp.types import ToolAnnotations"
+pkg = pathlib.Path(importlib.util.find_spec("kubectl_mcp_tool").submodule_search_locations[0])
+patched = 0
+for f in pkg.rglob("*.py"):
+    src = f.read_text()
+    if old in src:
+        f.write_text(src.replace(old, new))
+        patched += 1
+leftover = [str(f) for f in pkg.rglob("*.py") if old in f.read_text()]
+if leftover:
+    sys.exit(f"Failed to patch: {leftover}")
+print(f"    rewrote the import in {patched} file(s)")
+PYEOF
+
 "$DEMO_VENV/bin/kubectl-mcp-serve" doctor
 
 echo "==> Wiring the kubernetes MCP server into Claude Code"
