@@ -12,5 +12,5 @@
 # and the fallback kubectl-mcp-server's own code already uses) right after
 # this file is installed. Drop that step once kubectl-mcp-server ships a
 # fastmcp 4 compatible release.
-kubectl-mcp-server==1.24.0
+kubectl-mcp-server==2.0.0
 fastmcp<5
